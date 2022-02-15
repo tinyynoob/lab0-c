@@ -37,6 +37,22 @@ void q_free(struct list_head *l) {}
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+    element_t *newNode = (element_t *) malloc(sizeof(element_t));
+    if (!newNode)
+        return false;
+    INIT_LIST_HEAD(&newNode->list);
+    newNode->value = NULL;
+    size_t size = strlen(s);
+    newNode->value = (char *) malloc(
+        sizeof(char) * (size + 1));  //+1 to include the null terminator
+    if (!newNode->value) {
+        free(newNode);
+        return false;
+    }
+    strncpy(newNode->value, s, sizeof(char) * (size + 1));
+    list_add(&newNode->list, head);
     return true;
 }
 
@@ -49,6 +65,22 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+    element_t *newNode = (element_t *) malloc(sizeof(element_t));
+    if (!newNode)
+        return false;
+    INIT_LIST_HEAD(&newNode->list);
+    newNode->value = NULL;
+    size_t size = strlen(s);
+    newNode->value = (char *) malloc(
+        sizeof(char) * (size + 1));  //+1 to include the null terminator
+    if (!newNode->value) {
+        free(newNode);
+        return false;
+    }
+    strncpy(newNode->value, s, sizeof(char) * (size + 1));
+    list_add_tail(&newNode->list, head);
     return true;
 }
 
