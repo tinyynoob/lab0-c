@@ -17,7 +17,12 @@
  */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *newNode =
+        (struct list_head *) malloc(sizeof(struct list_head));
+    if (!newNode)
+        return NULL;
+    INIT_LIST_HEAD(newNode);
+    return newNode;
 }
 
 /* Free all storage used by queue */
@@ -91,7 +96,13 @@ void q_release_element(element_t *e)
  */
 int q_size(struct list_head *head)
 {
-    return -1;
+    if (!head || list_empty(head))
+        return 0;
+    int size = 0;
+    struct list_head *it;
+    list_for_each (it, head)
+        size++;
+    return it;
 }
 
 /*
