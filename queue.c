@@ -110,7 +110,16 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head))
+        return NULL;
+    element_t *toRm = container_of(head->next, element_t, list);
+    list_del_init(head->next);
+    if (sp) {
+        size_t len = strnlen(toRm->value, bufsize - 1);
+        strncpy(sp, toRm->value, len);
+        sp[len] = '\0';
+    }
+    return toRm;
 }
 
 /*
@@ -119,7 +128,16 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
  */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head))
+        return NULL;
+    element_t *toRm = container_of(head->prev, element_t, list);
+    list_del_init(head->prev);
+    if (sp) {
+        size_t len = strnlen(toRm->value, bufsize - 1);
+        strncpy(sp, toRm->value, len);
+        sp[len] = '\0';
+    }
+    return toRm;
 }
 
 /*
