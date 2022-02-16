@@ -26,7 +26,17 @@ struct list_head *q_new()
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    if (!l)  // prevent doubly free
+        return;
+    while (!list_empty(l)) {
+        element_t *toDel = container_of(l->next, element_t, list);
+        list_del(l->next);
+        q_release_element(toDel);
+    }
+    free(l);
+}
 
 /*
  * Attempt to insert element at head of queue.
