@@ -5,6 +5,9 @@
 #include "harness.h"
 #include "queue.h"
 
+
+inline void swap_pair(struct list_head **head);
+
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -228,7 +231,13 @@ bool q_delete_dup(struct list_head *head)
  */
 void q_swap(struct list_head *head)
 {
-    // https://leetcode.com/problems/swap-nodes-in-pairs/
+    if (!head)
+        return;
+    for (struct list_head **it = &head->next;
+         *it != head && (*it)->next != head;) {
+        swap_pair(it);
+        it = &(*it)->next->next;
+    }
 }
 
 /*
@@ -246,3 +255,14 @@ void q_reverse(struct list_head *head) {}
  * element, do nothing.
  */
 void q_sort(struct list_head *head) {}
+
+/* swap next two entries starting from *head */
+inline void swap_pair(struct list_head **head)
+{
+    struct list_head *first = *head, *second = first->next;
+    first->next = second->next;
+    second->next = first;
+    second->prev = first->prev;
+    first->prev = second;
+    *head = second;
+}
