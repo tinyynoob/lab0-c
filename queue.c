@@ -7,6 +7,7 @@
 
 
 static inline void swap_pair(struct list_head **head);
+static inline void swapptr(char **, char **);
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -245,7 +246,15 @@ void q_swap(struct list_head *head)
  * (e.g., by calling q_insert_head, q_insert_tail, or q_remove_head).
  * It should rearrange the existing ones.
  */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+    for (struct list_head *it = head->next; it != head; it = it->prev)
+        swapptr((char **) &it->next, (char **) &it->prev);
+    swapptr((char **) &head->next, (char **) &head->prev);
+}
+
 
 /*
  * Sort elements of queue in ascending order
@@ -264,4 +273,12 @@ static inline void swap_pair(struct list_head **head)
     second->prev = first->prev;
     first->prev = second;
     *head = second;
+}
+
+static inline void swapptr(char **a, char **b)
+{
+    //(__intptr_t)(*a) ^= (__intptr_t)*b;   //failed to swap with xor
+    char *tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
