@@ -6,7 +6,7 @@
 #include "queue.h"
 
 
-inline void swap_pair(struct list_head **head);
+static inline void swap_pair(struct list_head **head);
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -234,10 +234,8 @@ void q_swap(struct list_head *head)
     if (!head)
         return;
     for (struct list_head **it = &head->next;
-         *it != head && (*it)->next != head;) {
+         *it != head && (*it)->next != head; it = &(*it)->next->next)
         swap_pair(it);
-        it = &(*it)->next->next;
-    }
 }
 
 /*
@@ -257,9 +255,10 @@ void q_reverse(struct list_head *head) {}
 void q_sort(struct list_head *head) {}
 
 /* swap next two entries starting from *head */
-inline void swap_pair(struct list_head **head)
+static inline void swap_pair(struct list_head **head)
 {
     struct list_head *first = *head, *second = first->next;
+    second->next->prev = first;
     first->next = second->next;
     second->next = first;
     second->prev = first->prev;
