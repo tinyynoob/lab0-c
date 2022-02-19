@@ -8,6 +8,7 @@
 
 static inline void swap_pair(struct list_head **head);
 static inline void swapptr(char **, char **);
+struct list_head *merge_sorted_singly(struct list_head *, struct list_head *);
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -261,7 +262,31 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+    size_t size = q_size(head);
+    struct list_head *lists[size];
+    struct list_head *it = head->next;
+    for (size_t i = 0; i < size; i++) {
+        lists[i] = it;
+        it = it->next;
+        it->prev->next = NULL;
+    }
+    for (size_t n = size; n > 1; n = n / 2 + (n & 1)) {
+        for (size_t i = 0; i < n / 2; i++)
+            lists[i] =
+                merge_sorted_singly(lists[i], lists[n / 2 + (n & 1) + i]);
+    }
+    head->next = lists[0];
+    lists[0]->prev = head;
+    for (it = lists[0]; it->next; it = it->next)
+        it->next->prev = it;
+    it->next = head;
+    head->prev = it;
+    return;
+}
 
 /* swap next two entries starting from *head */
 static inline void swap_pair(struct list_head **head)
@@ -280,4 +305,22 @@ static inline void swapptr(char **a, char **b)
     (*a) = (char *) ((__intptr_t)(*a) ^ (__intptr_t)(*b));
     (*b) = (char *) ((__intptr_t)(*b) ^ (__intptr_t)(*a));
     (*a) = (char *) ((__intptr_t)(*a) ^ (__intptr_t)(*b));
+}
+
+struct list_head *merge_sorted_singly(struct list_head *l1,
+                                      struct list_head *l2)
+{
+    struct list_head *ans = NULL, **prev = &ans;
+    while (l1 && l2) {
+        struct list_head **small =
+            strcmp(container_of(l1, element_t, list)->value,
+                   container_of(l2, element_t, list)->value) < 0
+                ? &l1
+                : &l2;
+        *prev = *small;
+        (*small) = (*small)->next;
+        prev = &(*prev)->next;
+    }
+    *prev = l1 ? l1 : l2;
+    return ans;
 }
