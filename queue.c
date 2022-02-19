@@ -277,8 +277,7 @@ static inline void swap_pair(struct list_head **head)
 
 static inline void swapptr(char **a, char **b)
 {
-    //(__intptr_t)(*a) ^= (__intptr_t)*b;   //failed to swap with xor
-    char *tmp = *a;
-    *a = *b;
-    *b = tmp;
+    (*a) = (char *) ((__intptr_t)(*a) ^ (__intptr_t)(*b));
+    (*b) = (char *) ((__intptr_t)(*b) ^ (__intptr_t)(*a));
+    (*a) = (char *) ((__intptr_t)(*a) ^ (__intptr_t)(*b));
 }
