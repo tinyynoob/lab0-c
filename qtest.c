@@ -682,6 +682,28 @@ static bool do_swap(int argc, char *argv[])
     return !error_check();
 }
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    if (!l_meta.l)
+        report(3, "Warning: Try to access null queue");
+    error_check();
+
+    for (int i = l_meta.size; i; i--) {
+        int roll = rand() % i;
+        struct list_head *it = l_meta.l->next;
+        for (int j = 0; j < roll; j++)
+            it = it->next;
+        list_move_tail(it, l_meta.l);
+    }
+    show_queue(3);
+    return !error_check();
+}
+
 static bool is_circular()
 {
     struct list_head *cur = l_meta.l->next;
@@ -795,6 +817,7 @@ static void console_init()
         dedup, "                | Delete all nodes that have duplicate string");
     ADD_COMMAND(swap,
                 "                | Swap every two adjacent nodes in queue");
+    ADD_COMMAND(shuffle, "                | Shuffle the contents in queue");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
