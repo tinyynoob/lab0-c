@@ -9,9 +9,8 @@
 static inline void swap_pair(struct list_head **head);
 static inline void swapptr(char **, char **);
 struct list_head *merge_sorted_singly(struct list_head *, struct list_head *);
-void final_merge(struct list_head *head,
-                 struct list_head *l1,
-                 struct list_head *l2);
+struct list_head *split_list(struct list_head *const head);
+void mergesort(struct list_head **head);
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -259,7 +258,6 @@ void q_reverse(struct list_head *head)
     swapptr((char **) &head->next, (char **) &head->prev);
 }
 
-
 /*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
@@ -269,19 +267,15 @@ void q_sort(struct list_head *head)
 {
     if (!head || list_empty(head) || list_is_singular(head))
         return;
-    const size_t size = q_size(head);
-    struct list_head *lists[size];
-    struct list_head *it = head->next;
-    for (size_t i = 0; i < size; i++) {
-        lists[i] = it;
-        it = it->next;
-        lists[i]->next = NULL;
+    head->prev->next = NULL;
+    mergesort(&head->next);
+    struct list_head *prev = head;
+    for (struct list_head *it = head->next; it; it = it->next) {
+        it->prev = prev;
+        prev = it;
     }
-    for (size_t n = size; n > 2; n = n / 2 + (n & 1)) {
-        for (size_t i = 0, j = n - 1; i < j; i++, j--)
-            lists[i] = merge_sorted_singly(lists[i], lists[j]);
-    }
-    final_merge(head, lists[0], lists[1]);
+    head->prev = prev;
+    prev->next = head;
 }
 
 /* swap next two entries starting from *head */
@@ -303,6 +297,32 @@ static inline void swapptr(char **a, char **b)
     (*a) = (char *) ((__intptr_t)(*a) ^ (__intptr_t)(*b));
 }
 
+/* merge sort for singly linked list*/
+void mergesort(struct list_head **head)
+{
+    if (!*head || !(*head)->next)
+        return;
+    struct list_head *mid = split_list(*head);
+    mergesort(head);
+    mergesort(&mid);
+    *head = merge_sorted_singly(*head, mid);
+}
+
+/* split the list and return a pointer to mid */
+struct list_head *split_list(struct list_head *const head)
+{
+    struct list_head *fast = head->next, *slow = head;
+    while (fast) {
+        if (fast->next)
+            fast = fast->next->next;
+        else
+            fast = fast->next;
+        slow = slow->next;
+    }
+    slow->prev->next = NULL;
+    return slow;
+}
+
 struct list_head *merge_sorted_singly(struct list_head *l1,
                                       struct list_head *l2)
 {
@@ -319,27 +339,4 @@ struct list_head *merge_sorted_singly(struct list_head *l1,
     }
     *tail = l1 ? l1 : l2;
     return ans;
-}
-
-/* merge to doubly-linked list */
-void final_merge(struct list_head *head,
-                 struct list_head *l1,
-                 struct list_head *l2)
-{
-    struct list_head *it = head;
-    while (l1 && l2) {
-        struct list_head **small =
-            strcmp(container_of(l1, element_t, list)->value,
-                   container_of(l2, element_t, list)->value) <= 0
-                ? &l1
-                : &l2;
-        (*small)->prev = it;
-        it->next = *small;
-        it = it->next;
-        (*small) = (*small)->next;
-    }
-    for (it->next = l1 ? l1 : l2; it->next; it = it->next)
-        it->next->prev = it;
-    it->next = head;
-    head->prev = it;
 }
