@@ -144,3 +144,6 @@ foreach
 dup
 dev
 swapptr
+ptr
+mergesort
+
